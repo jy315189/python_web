@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>数据摆渡</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="static/assets/css/main.css" />
+	</head>
+	<body>
+	<style>
+textarea {
+  resize: none;
+	font-size: 11px;
+	height: 200px;
+}
+</style>
+
+	
+
+<!--  <button id="submit-button">Submit</button>-->
+		<!-- Contact -->
+			<section id="contact" class="wrapper">
+				<div class="inner split">
+				
+					<section>
+						<h2>二维码扫描</h2>
+						<form >
+							<ul class="contact">
+								<div class="container">
+									<div id="reader"></div>
+									<div id="result"></div>
+								  </div>
+								  <canvas id="canva" style="display:none"></canvas>
+					
+							</ul>
+				
+							 <ul class="contact">
+								<ul class="actions">
+									<button onclick="startCameraAndScan()" type="button" class="button special">开始摄像并扫描</button>
+									<button onclick="resumeScan()" type="button" class="button special">继续扫描</button>
+							
+									<!-- <li><a href="#" class="button special"  onclick="startCameraAndScan()">开始摄像并扫描</a></li>
+									<li><a href="#" class="button special"  onclick="pauseCamera()">暂停摄像</a></li>
+									<li><a href="#" class="button special"  onclick="stopCamera()">关闭摄像头</a></li> -->
+						
+<!--									<button onclick="pauseCamera()" type="button" class="button special">暂停摄像</button>-->
+<!--									<button onclick="startCamera()" type="button" class="button special">继续摄像</button>-->
+<!--									&lt;!&ndash; <li><a href="#" class="button special"  onclick="pauseScan()">暂停扫描</a></li>-->
+<!--									<li><a href="#" class="button special"  onclick="resumeScan()">继续扫描</a></li> &ndash;&gt;-->
+<!--									<button onclick="stopCamera()" type="button" class="button special">关闭摄像</button>-->
+<!--									<button onclick="pauseScan()" type="button" class="button special">暂停扫描</button>-->
+<!--									<button onclick="resumeScan()" type="button" class="button special">继续扫描</button>-->
+<!--									<button onclick="takePhoto()" type="button" class="button special">拍照</button>-->
+<!--									<button onclick="window.location.reload()" type="button" class="button special">刷新</button>	-->
+								</ul>
+							</ul>
+						
+						</form>
+						<div class="btn-group">
+							<div class="btn-center btn-middle">
+						
+						
+							</div>
+						  </div>
+
+					</section>
+					<section>
+						<h2>数据提交</h2>
+						
+						<form >
+							<div class="row uniform">
+								<div class="12u$">
+									解析信息
+									<textarea name="message1" placeholder="Message" rows="4"></textarea>
+ 								</div>
+								<div class="12u$">
+									返回信息
+									<textarea name="message2" placeholder="Message" rows="4"></textarea>
+ 								</div>
+ 							</div>
+ 							<ul class="actions">
+<!-- 								<li><input class="alt" value="提交信息" type="submit"></li>-->
+								<input id="submit-button" class="alt" value="提交扫描结果" type="button">
+
+ 							</ul>
+ 						</form>
+					</section>
+				</div>
+			</section>
+
+		<!-- Scripts -->
+			<script src="static/assets/js/jquery.min.js"></script>
+			<script src="static/assets/js/skel.min.js"></script>
+			<script src="static/assets/js/util.js"></script>
+			<script src="static/assets/js/main.js"></script>
+			<script src="static/assets/js/jquery-3.6.0.min.js"></script>
+			<script src="static/assets/js/html5-qrcode.min.js"></script>
+<script>
+    function sendData() {
+      var message1 = document.querySelector('textarea[name="message1"]').value;
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/process');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onload = function() {
+        var message2 = document.querySelector('textarea[name="message2"]');
+        message2.value = xhr.responseText;  // 设置 message2 的值
+      };
+      xhr.send('message1=' + encodeURIComponent(message1));
+    }
+
+    var submitButton = document.getElementById('submit-button');
+    submitButton.addEventListener('click', sendData);
+
+
+    var html5QrcodeScanner = new Html5Qrcode("reader");
+    function startCameraAndScan(){
+        $("#canva").css("display","none");
+        html5QrcodeScanner.start(
+            {facingMode:"environment"}//environment:后摄像头；user:前摄像头
+            ,{ fps: 10, qrbox:{width:400,height:400}},onScanSuccess);
+    }
+    // function onScanSuccess(decodedText, decodedResult) {
+    //     pauseScan(); // 停止解析
+    //     pauseCamera(); // 暂停摄像
+    //     var resultElement = document.getElementById("result");
+    //     resultElement.innerHTML = decodedText; // 将解码后的文本添加到文本框中
+    //     console.log(`Scan result: ${decodedText}`, decodedResult);
+    //   }
+	function onScanSuccess(decodedText, decodedResult) {
+    pauseScan(); // 停止解析
+    pauseCamera(); // 暂停摄像
+    var textareaElement = document.querySelector("textarea[name='message1']");
+    textareaElement.value = decodedText; // 将解码后的文本添加到文本域中
+    console.log(`Scan result: ${decodedText}`, decodedResult);
+}
+    //暂停扫描解析二维码
+    function pauseScan() {
+        html5QrcodeScanner.pause();
+    }
+    //继续扫描解析二维码
+    function resumeScan(){
+        html5QrcodeScanner.resume();
+		  // 获取两个文本框的 DOM 元素
+  var message1 = document.getElementsByName("message1")[0];
+  var message2 = document.getElementsByName("message2")[0];
+
+  // 将文本框的值设置为空字符串
+  message1.value = "";
+  message2.value = "";
+    }
+    //关闭摄像头
+    function stopCamera(){
+        html5QrcodeScanner.stop();
+    }
+    //暂停摄像
+    function pauseCamera(){
+        document.querySelector("video").pause();//停止扫描
+    }
+    //继续摄像
+    function startCamera(){
+        document.querySelector("video").play();
+    }
+    //拍照
+    function takePhoto(){
+        var video = document.querySelector("video");
+        var reader = $("#reader");
+        var canva = document.getElementById("canva");
+        canva.setAttribute("width",reader.css("width"));
+        canva.setAttribute("height",reader.css("height"));
+        canva.getContext("2d").drawImage(video,0,0,$(video).width(),$(video).height());
+        stopCamera();//停止摄像
+        $(canva).css("display","");
+       // var data = canva.toDataURL();//图形转成base64
+    }
+</script>
+
+	</body>
+</html>
